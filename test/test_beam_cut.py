@@ -1,4 +1,5 @@
 import unittest
+import os
 import numpy as np
 from pathlib import Path
 from grasp2alm import BeamCut
@@ -6,6 +7,9 @@ from grasp2alm import BeamCut
 class TestBeamCut(unittest.TestCase):
     def setUp(self):
         self.path_to_test_cut = str(Path(__file__).parent / "beam_files" / "unit_test.cut")
+    def tearDown(self):
+        if os.path.exists(self.path_to_test_cut):
+            os. remove(self.path_to_test_cut)
     def write_to_test_cut(self, txt:str):
         text_file = open(self.path_to_test_cut, "w")
         text_file.write(txt)
