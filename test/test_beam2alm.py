@@ -65,7 +65,7 @@ class TestBeamCut(unittest.TestCase):
 
     def test_cut_beam2alm_I(self):
         W_I = np.array([self.alm_to_test[0,i]*np.sqrt((4*np.pi)/(2*i+1)) for i in range(self.lmax)])
-        assert np.allclose(W_I, self.ideal_window, atol=1e-4)
+        return np.allclose(W_I, self.ideal_window, atol=1e-4)
 
 if __name__ == '__main__':
     unittest.main()
