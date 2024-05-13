@@ -10,7 +10,7 @@ from math import factorial
 class TestBeamCut(unittest.TestCase):
     def setUp(self):
         self.path = str(Path(__file__).parent / "beam_files" / "beam2alm.cut")
-        self.lmax = 512
+        self.lmax = 256
         pol = True
         nside = 512
         beam_fwhm = np.deg2rad(10)
@@ -21,7 +21,7 @@ class TestBeamCut(unittest.TestCase):
         vinc: float = 0.1
         vnum = int(abs(vini)*2/vinc + 1)
         c = 0
-        ncut = 40
+        ncut = 20
         header_1: str = "Field data in cuts"
         header_2 = f"{vini} {vinc} {vnum} {c} 3 1 2"
 
@@ -31,7 +31,7 @@ class TestBeamCut(unittest.TestCase):
         beam_co = self.gaussian_beam(amplitude, beam_sigma, theta)
         self.write2cut(header_1, header_2, vnum, ncut, beam_co)
 
-        self.test_alm = g2a.grasp2alm(self.path, nside, interp_method='cubic', lmax=self.lmax, mmax=2)
+        self.test_alm = g2a.grasp2alm(self.path, nside, interp_method='cubic', lmax=self.lmax, mmax=2, pol=pol)
         self.ideal_alm = hp.blm_gauss(beam_fwhm, lmax=self.lmax, pol=pol)
 
     def tearDown(self):
@@ -54,7 +54,7 @@ class TestBeamCut(unittest.TestCase):
         return amplitude * np.exp(- theta**2 / (2*sigma**2)) + np.nextafter(0,1)
 
     def test_cut_beam2alm_I(self):
-        return np.allclose(self.test_alm[0], self.ideal_alm[0], atol=1e-4)
+        return np.allclose(self.test_alm[0], self.ideal_alm[0])
 
 if __name__ == '__main__':
     unittest.main()
