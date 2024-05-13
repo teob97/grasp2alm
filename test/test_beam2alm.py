@@ -55,6 +55,10 @@ class TestBeamCut(unittest.TestCase):
 
     def test_cut_beam2alm_I(self):
         return np.allclose(self.test_alm[0], self.ideal_alm[0])
+    def test_cut_beam2alm_Q(self):
+        return np.allclose(self.test_alm[1], self.ideal_alm[1])
+    def test_cut_beam2alm_U(self):
+        return np.allclose(self.test_alm[2], self.ideal_alm[2]) 
 
 if __name__ == '__main__':
     unittest.main()
