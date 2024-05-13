@@ -2,8 +2,10 @@ import unittest
 import os
 import numpy as np
 import grasp2alm as g2a
+import healpy as hp
 from pathlib import Path
 from scipy.special import ive
+from math import factorial
 
 class TestBeamCut(unittest.TestCase):
     def setUp(self):
@@ -11,9 +13,9 @@ class TestBeamCut(unittest.TestCase):
         self.lmax = 512
         pol = True
         nside = 512
-        beam_fwhm = np.deg2rad(5)
+        beam_fwhm = np.deg2rad(10)
         beam_sigma = beam_fwhm/(2*np.sqrt(2*np.log(2)))
-        amplitude = 1.0
+        amplitude = 30.0
 
         vini: float = -180.0
         vinc: float = 0.1
@@ -26,17 +28,17 @@ class TestBeamCut(unittest.TestCase):
         theta = np.linspace(vini, -vini, vnum)
         theta = np.deg2rad(theta)
 
-        beam_stokes = self.gaussian_beam(amplitude, beam_sigma, theta)
-        beam_stokes = np.repeat([beam_stokes], 4, axis=0).T
+        beam_co = self.gaussian_beam(amplitude, beam_sigma, theta)
+        self.write2cut(header_1, header_2, vnum, ncut, beam_co)
 
-        co, cx = self.stokes2cocross(beam_stokes)
+        self.test_alm = g2a.grasp2alm(self.path, nside, interp_method='cubic', lmax=self.lmax, mmax=2)
+        self.ideal_alm = hp.blm_gauss(beam_fwhm, lmax=self.lmax, pol=pol)
 
-        self.write2cut(header_1, header_2, vnum, ncut, co, cx)
+    def tearDown(self):
+        if os.path.exists(self.path):
+            os.remove(self.path)
 
-        self.alm_to_test = g2a.grasp2alm(self.path, nside)
-        self.ideal_window = [self.ideal_baeam_window(amplitude, beam_sigma, i) for i in np.array(range(self.lmax))]
-
-    def write2cut(self, header_1, header_2, vnum, ncut, co, cx):
+    def write2cut(self, header_1, header_2, vnum, ncut, co):
         with open(self.path, 'w') as file:
             for n in range(ncut):
                 file.write(header_1)
@@ -44,28 +46,15 @@ class TestBeamCut(unittest.TestCase):
                 file.write(header_2)
                 file.write('\n')
                 for i in range(vnum):
-                    co_i = co[i]
-                    cx_i = cx[i]
+                    co_i = np.emath.sqrt(co[i])
+                    cx_i = 0.0
                     file.write(f"{np.real(co_i)} {np.imag(co_i)} {np.real(cx_i)} {np.imag(cx_i)}\n")
 
     def gaussian_beam(self, amplitude, sigma, theta):
         return amplitude * np.exp(- theta**2 / (2*sigma**2)) + np.nextafter(0,1)
 
-    def stokes2cocross(self, beam):
-        modco2 = 0.5 * (beam[:,0]+beam[:,1])
-        modcx2 = 0.5 * (beam[:,0]-beam[:,1])
-        co = np.emath.sqrt(modco2)
-        cx = np.emath.sqrt(modcx2)
-        return co, cx
-
-    def ideal_baeam_window(self, amplitude, sigma, l):
-        alpha = 1/sigma**2
-        k = np.sqrt(np.pi/(2*alpha))
-        return 4*np.pi*amplitude*k*ive(l+0.5, alpha)
-
     def test_cut_beam2alm_I(self):
-        W_I = np.array([self.alm_to_test[0,i]*np.sqrt((4*np.pi)/(2*i+1)) for i in range(self.lmax)])
-        return np.allclose(W_I, self.ideal_window, atol=1e-4)
+        return np.allclose(self.test_alm[0], self.ideal_alm[0], atol=1e-4)
 
 if __name__ == '__main__':
     unittest.main()
