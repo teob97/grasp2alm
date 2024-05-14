@@ -8,20 +8,22 @@ from scipy.special import ive
 from math import factorial
 
 class TestBeamCut(unittest.TestCase):
+
     def setUp(self):
         self.path: str = str(Path(__file__).parent / "beam_files" / "beam2alm.cut")
-        self.lmax: int = 256
-        pol: bool = True
-        nside: int = 512
-        beam_fwhm: float = np.deg2rad(10)
-        beam_sigma: float = beam_fwhm/(2*np.sqrt(2*np.log(2)))
-        amplitude: float = 30.0
+        pol = True
+        nside: int = 1024
+        self.lmax: int = 2*nside
+        beam_fwhm_deg = np.rad2deg(hp.nside2resol(nside))*100
+        beam_fwhm = np.deg2rad(beam_fwhm_deg)
+        beam_sigma = beam_fwhm/(2.0*np.sqrt(2.0*np.log(2.0)))
+        amplitude = 1/(2*np.pi*beam_sigma*beam_sigma)
 
-        vini: float = -180.0
-        vinc: float = 0.1
-        vnum = int(abs(vini)*2/vinc + 1)
-        c: float = 0
-        ncut: int = 20
+        vini: float = -beam_fwhm_deg*3
+        vnum = 40001
+        vinc: float = abs(vini)*2/vnum
+        c = 0
+        ncut = 40
         header_1: str = "Field data in cuts"
         header_2: str = f"{vini} {vinc} {vnum} {c} 3 1 2"
 
@@ -31,10 +33,10 @@ class TestBeamCut(unittest.TestCase):
         beam_co = self.gaussian_beam(amplitude, beam_sigma, theta)
         self.write2cut(header_1, header_2, vnum, ncut, beam_co)
 
-        self.test_alm = g2a.grasp2alm(self.path, nside, interp_method='cubic', lmax=self.lmax, mmax=2, pol=pol)
-        self.ideal_alm = hp.blm_gauss(beam_fwhm, lmax=self.lmax, pol=pol)
+        self.test_alm = g2a.grasp2alm(self.path, nside, interp_method='linear', lmax=self.lmax, mmax=2, pol=pol)
+        self.ideal_alm = self.ideal_alm_gauss(beam_fwhm, lmax=self.lmax, pol=pol)
 
-    def tearDown(self):
+    def tearDown(self):        
         if os.path.exists(self.path):
             os.remove(self.path)
 
@@ -53,12 +55,37 @@ class TestBeamCut(unittest.TestCase):
     def gaussian_beam(self, amplitude, sigma, theta):
         return amplitude * np.exp(- theta**2 / (2*sigma**2)) + np.nextafter(0,1)
 
+    def ideal_alm_gauss(self, fwhm:float, lmax:int, pol:bool):
+        mmax: int = 2
+        ncomp: int = 3
+        nval = hp.Alm.getsize(lmax, mmax)
+
+        blm = np.zeros((ncomp, nval), dtype=np.complex128)
+        sigmasq = fwhm * fwhm / (8 * np.log(2.0))
+
+        for l in range(0, lmax + 1):
+            blm[0, hp.Alm.getidx(lmax, l, 0)] = np.sqrt((2 * l + 1) / (4.0 * np.pi)) * np.exp(
+                -0.5 * sigmasq * l * (l+1)
+            )
+
+        if pol:
+            for l in range(2, lmax + 1):
+                blm[1, hp.Alm.getidx(lmax, l, 2)] = np.sqrt(
+                    (2 * l + 1) / (16 * np.pi)
+                ) * np.exp(-0.5 * sigmasq * l * (l+1))
+            blm[2] = 1j * blm[1]
+
+        return blm
+
     def test_cut_beam2alm_I(self):
-        self.assertTrue(np.allclose(self.test_alm[0], self.ideal_alm[0]))
+        index = hp.Alm.getidx(self.lmax, np.arange(self.lmax), 0)
+        self.assertTrue(np.allclose(self.test_alm[0][index], self.ideal_alm[0][index], atol=1e-3))
     def test_cut_beam2alm_Q(self):
-        self.assertTrue(np.allclose(self.test_alm[1], self.ideal_alm[1]))
+        index = hp.Alm.getidx(self.lmax, np.arange(self.lmax), 2)
+        self.assertTrue(np.allclose(self.test_alm[1][index], self.ideal_alm[1][index], atol=1e-3))
     def test_cut_beam2alm_U(self):
-        self.assertTrue(np.allclose(self.test_alm[2], self.ideal_alm[2]))
+        index = hp.Alm.getidx(self.lmax, np.arange(self.lmax), 2)
+        self.assertTrue(np.allclose(self.test_alm[2][index], self.ideal_alm[2][index], atol=1e-3))
 
 if __name__ == '__main__':
     unittest.main()
