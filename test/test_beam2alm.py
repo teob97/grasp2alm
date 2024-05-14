@@ -9,21 +9,21 @@ from math import factorial
 
 class TestBeamCut(unittest.TestCase):
     def setUp(self):
-        self.path = str(Path(__file__).parent / "beam_files" / "beam2alm.cut")
-        self.lmax = 256
-        pol = True
-        nside = 512
-        beam_fwhm = np.deg2rad(10)
-        beam_sigma = beam_fwhm/(2*np.sqrt(2*np.log(2)))
-        amplitude = 30.0
+        self.path: str = str(Path(__file__).parent / "beam_files" / "beam2alm.cut")
+        self.lmax: int = 256
+        pol: bool = True
+        nside: int = 512
+        beam_fwhm: float = np.deg2rad(10)
+        beam_sigma: float = beam_fwhm/(2*np.sqrt(2*np.log(2)))
+        amplitude: float = 30.0
 
         vini: float = -180.0
         vinc: float = 0.1
         vnum = int(abs(vini)*2/vinc + 1)
-        c = 0
-        ncut = 20
+        c: float = 0
+        ncut: int = 20
         header_1: str = "Field data in cuts"
-        header_2 = f"{vini} {vinc} {vnum} {c} 3 1 2"
+        header_2: str = f"{vini} {vinc} {vnum} {c} 3 1 2"
 
         theta = np.linspace(vini, -vini, vnum)
         theta = np.deg2rad(theta)
@@ -54,11 +54,11 @@ class TestBeamCut(unittest.TestCase):
         return amplitude * np.exp(- theta**2 / (2*sigma**2)) + np.nextafter(0,1)
 
     def test_cut_beam2alm_I(self):
-        return np.allclose(self.test_alm[0], self.ideal_alm[0])
+        self.assertTrue(np.allclose(self.test_alm[0], self.ideal_alm[0]))
     def test_cut_beam2alm_Q(self):
-        return np.allclose(self.test_alm[1], self.ideal_alm[1])
+        self.assertTrue(np.allclose(self.test_alm[1], self.ideal_alm[1]))
     def test_cut_beam2alm_U(self):
-        return np.allclose(self.test_alm[2], self.ideal_alm[2]) 
+        self.assertTrue(np.allclose(self.test_alm[2], self.ideal_alm[2]))
 
 if __name__ == '__main__':
     unittest.main()
