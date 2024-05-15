@@ -30,8 +30,8 @@ class TestBeamGrid(unittest.TestCase):
         xe: float = 360.0
         ye: float = 90.0
         
-        nx: int = 0
-        ny: int = 0
+        nx: int = 1001
+        ny: int = 1001
         klimit: int = 0
 
         amp: np.ndarray = None
@@ -49,6 +49,27 @@ class TestBeamGrid(unittest.TestCase):
                     f"{ix} {iy}" + \
                     f"{xs} {ys} {xe} {ye}" + \
                     f"{nx} {ny} {klimit}"
+        
+    def gaussian_beam(self,amplitude,sigma,xs,ys,xe,ye,nx,ny):
+        x, y = np.meshgrid(np.linspace(xs,xe,nx),np.linspace(ys,ye,ny))
+        d = np.sqrt(x**2 + y**2)
+        gauss = amplitude * np.exp(-(d/2*sigma)**2)
+        return gauss
+    
+    def write2grid(self,header,beam):
+        with open(self.path) as file:
+            file.write(header)
+            file.write("\n")
+            for i in range(beam.size):
+                co = np.sqrt(beam.flatten[i])
+                cx = 0.
+                file.write(f"{np.real(co)},{np.imag(co)},{np.real(cx)},{np.imag(cx)}")
+            
+
+
+if __name__ == '__main__':
+    unittest.main()
+
         
         
         
