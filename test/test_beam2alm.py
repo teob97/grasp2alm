@@ -50,7 +50,7 @@ class TestBeamCut(unittest.TestCase):
         return amplitude * np.exp(- theta**2 / (2*sigma**2))
 
     @classmethod
-    def tearDownClass(cls):      
+    def tearDownClass(cls):
         if os.path.exists(cls.path):
             os.remove(cls.path)
 

@@ -1,7 +1,7 @@
 import unittest
 import os
-import numpy as np
 from pathlib import Path
+import numpy as np
 from grasp2alm import BeamCut
 
 class TestBeamCut(unittest.TestCase):
@@ -11,7 +11,7 @@ class TestBeamCut(unittest.TestCase):
         if os.path.exists(self.path_to_test_cut):
             os. remove(self.path_to_test_cut)
     def write_to_test_cut(self, txt:str):
-        text_file = open(self.path_to_test_cut, "w")
+        text_file = open(self.path_to_test_cut, "w", encoding='utf-8')
         text_file.write(txt)
         text_file.close()
     def test_input_extension_exeption(self):
