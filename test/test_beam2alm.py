@@ -1,11 +1,9 @@
 import unittest
 import os
-import numpy as np
-import grasp2alm as g2a
-import healpy as hp
 from pathlib import Path
-from scipy.special import ive
-from math import factorial
+import numpy as np
+import healpy as hp
+import grasp2alm as g2a
 
 class TestBeamCut(unittest.TestCase):
 
@@ -36,8 +34,8 @@ class TestBeamCut(unittest.TestCase):
 
     @classmethod
     def write2cut(cls, path:str, header_1:str, header_2:str, vnum:int, ncut:int, co):
-        with open(path, 'w') as file:
-            for n in range(ncut):
+        with open(path, 'w', encoding='utf-8') as file:
+            for _ in range(ncut):
                 file.write(header_1)
                 file.write('\n')
                 file.write(header_2)
@@ -57,7 +55,14 @@ class TestBeamCut(unittest.TestCase):
             os.remove(cls.path)
 
     def setUp(self):
-        self.test_alm = g2a.grasp2alm(self.path, self.nside, interp_method='linear', lmax=self.lmax, mmax=2, pol=self.pol)
+        self.test_alm = g2a.grasp2alm(
+            self.path,
+            self.nside,
+            interp_method='linear',
+            lmax=self.lmax,
+            mmax=2,
+            pol=self.pol
+        )
         self.ideal_alm = self.ideal_alm_gauss(self.beam_fwhm, lmax=self.lmax, pol=self.pol)
 
     def ideal_alm_gauss(self, fwhm:float, lmax:int, pol:bool):
