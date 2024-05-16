@@ -80,7 +80,8 @@ class BeamGrid:
                     self.header += "\n" + line
 
             self.ktype = int(fi.readline())
-            assert self.ktype == 1, "Unknown Grasp grid format, ktype != 1"
+            if self.ktype == 1:
+                raise ValueError("Unknown Grasp grid format, ktype != 1")
 
             line = fi.readline().split()
             self.nset  = int(line[0])
