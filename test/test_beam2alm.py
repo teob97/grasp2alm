@@ -9,18 +9,19 @@ from math import factorial
 
 class TestBeamCut(unittest.TestCase):
 
-    def setUp(self):
-        self.path: str = str(Path(__file__).parent / "beam_files" / "beam2alm.cut")
-        pol = True
-        nside: int = 1024
-        self.lmax: int = 2*nside
-        beam_fwhm_deg = np.rad2deg(hp.nside2resol(nside))*100
-        beam_fwhm = np.deg2rad(beam_fwhm_deg)
-        beam_sigma = beam_fwhm/(2.0*np.sqrt(2.0*np.log(2.0)))
+    @classmethod
+    def setUpClass(cls):
+        cls.path: str = str(Path(__file__).parent / "beam_files" / "beam2alm.cut")
+        cls.pol = True
+        cls.nside: int = 1024
+        cls.lmax: int = 2*cls.nside
+        beam_fwhm_deg = np.rad2deg(hp.nside2resol(cls.nside))*100
+        cls.beam_fwhm = np.deg2rad(beam_fwhm_deg)
+        beam_sigma = cls.beam_fwhm/(2.0*np.sqrt(2.0*np.log(2.0)))
         amplitude = 1/(2*np.pi*beam_sigma*beam_sigma)
 
         vini: float = -beam_fwhm_deg*3
-        vnum = 40001
+        vnum = 30001
         vinc: float = abs(vini)*2/vnum
         c = 0
         ncut = 40
@@ -30,18 +31,12 @@ class TestBeamCut(unittest.TestCase):
         theta = np.linspace(vini, -vini, vnum)
         theta = np.deg2rad(theta)
 
-        beam_co = self.gaussian_beam(amplitude, beam_sigma, theta)
-        self.write2cut(header_1, header_2, vnum, ncut, beam_co)
+        beam_co = cls.gaussian_beam(amplitude, beam_sigma, theta)
+        cls.write2cut(cls.path, header_1, header_2, vnum, ncut, beam_co)
 
-        self.test_alm = g2a.grasp2alm(self.path, nside, interp_method='linear', lmax=self.lmax, mmax=2, pol=pol)
-        self.ideal_alm = self.ideal_alm_gauss(beam_fwhm, lmax=self.lmax, pol=pol)
-
-    def tearDown(self):        
-        if os.path.exists(self.path):
-            os.remove(self.path)
-
-    def write2cut(self, header_1, header_2, vnum, ncut, co):
-        with open(self.path, 'w') as file:
+    @classmethod
+    def write2cut(cls, path, header_1, header_2, vnum, ncut, co):
+        with open(path, 'w') as file:
             for n in range(ncut):
                 file.write(header_1)
                 file.write('\n')
@@ -52,8 +47,18 @@ class TestBeamCut(unittest.TestCase):
                     cx_i = 0.0
                     file.write(f"{np.real(co_i)} {np.imag(co_i)} {np.real(cx_i)} {np.imag(cx_i)}\n")
 
-    def gaussian_beam(self, amplitude, sigma, theta):
-        return amplitude * np.exp(- theta**2 / (2*sigma**2)) + np.nextafter(0,1)
+    @classmethod
+    def gaussian_beam(cls, amplitude, sigma, theta):
+        return amplitude * np.exp(- theta**2 / (2*sigma**2))
+
+    def setUp(self):
+        self.test_alm = g2a.grasp2alm(self.path, self.nside, interp_method='linear', lmax=self.lmax, mmax=2, pol=self.pol)
+        self.ideal_alm = self.ideal_alm_gauss(self.beam_fwhm, lmax=self.lmax, pol=self.pol)
+
+    @classmethod
+    def tearDownClass(cls):      
+        if os.path.exists(cls.path):
+            os.remove(cls.path)
 
     def ideal_alm_gauss(self, fwhm:float, lmax:int, pol:bool):
         mmax: int = 2
