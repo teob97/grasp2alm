@@ -12,19 +12,19 @@ class TestBeamCut(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.path: str = str(Path(__file__).parent / "beam_files" / "beam2alm.cut")
-        cls.pol = True
+        cls.pol: bool = True
         cls.nside: int = 1024
         cls.lmax: int = 2*cls.nside
-        beam_fwhm_deg = np.rad2deg(hp.nside2resol(cls.nside))*100
-        cls.beam_fwhm = np.deg2rad(beam_fwhm_deg)
-        beam_sigma = cls.beam_fwhm/(2.0*np.sqrt(2.0*np.log(2.0)))
-        amplitude = 1/(2*np.pi*beam_sigma*beam_sigma)
+        beam_fwhm_deg: float = np.rad2deg(hp.nside2resol(cls.nside))*100
+        cls.beam_fwhm: float = np.deg2rad(beam_fwhm_deg)
+        beam_sigma: float = cls.beam_fwhm/(2.0*np.sqrt(2.0*np.log(2.0)))
+        amplitude: float = 1/(2*np.pi*beam_sigma*beam_sigma)
 
         vini: float = -beam_fwhm_deg*3
-        vnum = 30001
+        vnum: int = 30001
         vinc: float = abs(vini)*2/vnum
-        c = 0
-        ncut = 40
+        c: int = 0
+        ncut: int = 40
         header_1: str = "Field data in cuts"
         header_2: str = f"{vini} {vinc} {vnum} {c} 3 1 2"
 
@@ -35,7 +35,7 @@ class TestBeamCut(unittest.TestCase):
         cls.write2cut(cls.path, header_1, header_2, vnum, ncut, beam_co)
 
     @classmethod
-    def write2cut(cls, path, header_1, header_2, vnum, ncut, co):
+    def write2cut(cls, path:str, header_1:str, header_2:str, vnum:int, ncut:int, co):
         with open(path, 'w') as file:
             for n in range(ncut):
                 file.write(header_1)
@@ -51,14 +51,14 @@ class TestBeamCut(unittest.TestCase):
     def gaussian_beam(cls, amplitude, sigma, theta):
         return amplitude * np.exp(- theta**2 / (2*sigma**2))
 
-    def setUp(self):
-        self.test_alm = g2a.grasp2alm(self.path, self.nside, interp_method='linear', lmax=self.lmax, mmax=2, pol=self.pol)
-        self.ideal_alm = self.ideal_alm_gauss(self.beam_fwhm, lmax=self.lmax, pol=self.pol)
-
     @classmethod
     def tearDownClass(cls):      
         if os.path.exists(cls.path):
             os.remove(cls.path)
+
+    def setUp(self):
+        self.test_alm = g2a.grasp2alm(self.path, self.nside, interp_method='linear', lmax=self.lmax, mmax=2, pol=self.pol)
+        self.ideal_alm = self.ideal_alm_gauss(self.beam_fwhm, lmax=self.lmax, pol=self.pol)
 
     def ideal_alm_gauss(self, fwhm:float, lmax:int, pol:bool):
         mmax: int = 2
