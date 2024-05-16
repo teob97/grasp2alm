@@ -6,14 +6,17 @@ import healpy as hp
 import grasp2alm as g2a
 
 class TestBeamGrid(unittest.TestCase):
-    def setUp(self):
-        self.path = str( Path(__file__).parent / "beam_files" / "beam2alm.grd" )
+    @classmethod
+    def setUpClass(cls):
+        
+        #path grid file
+        cls.path = str( Path(__file__).parent / "beam_files" / "beam2alm.grd" )
 
         #grid variables
         freq: float = 119.0
         frequnit: str = "GHz"
 
-        ktype: int = 0
+        ktype: int = 1
 
         nset: int = 1
         icomp: int = 3
@@ -41,28 +44,47 @@ class TestBeamGrid(unittest.TestCase):
                     "FREQUENCY_NAME: freq\n" + \
                     f"FREQUENCIES [{frequnit}]:\n" + \
                     f"{freq}\n" + \
-                    "++++" + \
-                    f"{ktype}" + \
-                    f"{nset} {icomp} {ncomp} {igrid}" + \
-                    f"{ix} {iy}" + \
-                    f"{xs} {ys} {xe} {ye}" + \
+                    "++++\n" + \
+                    f"{ktype}\n" + \
+                    f"{nset} {icomp} {ncomp} {igrid}\n" + \
+                    f"{ix} {iy}\n" + \
+                    f"{xs} {ys} {xe} {ye}\n" + \
                     f"{nx} {ny} {klimit}"
-
-    def gaussian_beam(self,amplitude,sigma,xs,ys,xe,ye,nx,ny):
-        x, y = np.meshgrid(np.linspace(xs,xe,nx),np.linspace(ys,ye,ny))
-        d = np.sqrt(x**2 + y**2)
-        gauss = amplitude * np.exp(-(d/2*sigma)**2)
+        
+        #map and alm variables
+        cls.pol: bool = True
+        cls.nside: int = 1024
+        cls.lmax: int = 2*cls.nside
+        
+        #Gauss beam
+        fwhm_deg = np.rad2deg(hp.nside2resol(cls.nside))*100
+        fwhm = np.deg2rad(fwhm_deg)
+        sigma = fwhm/(2.0*np.sqrt(2.0*np.log(2.0)))
+        amplitude = 1/(2*np.pi*sigma**2)
+        
+        beam_co = cls.gaussian_beam(xs,ys,xe,ye,nx,ny,amplitude,sigma)
+        cls.write2grid(cls.path,header,beam_co)
+    
+    @classmethod
+    def gaussian_beam(cls,xs:float, ys:float, xe:float, ye:float, nx:int, ny:int, amplitude, sigma:float,):
+        grid = np.deg2rad( np.meshgrid(np.linspace(xs,xe,nx,endpoint=False),np.linspace(ys,ye,ny,endpoint=False)) )
+        gauss = amplitude * np.exp( -0.5*(grid[1]/sigma)**2 )
         return gauss
-
-    def write2grid(self,header,beam):
-        with open(self.path, 'w', encoding='utf-8') as file:
+    
+    @classmethod
+    def write2grid(cls,path:str,header:str,beam):
+        with open(path, 'w', encoding='utf-8') as file:
             file.write(header)
             file.write("\n")
+            co = np.sqrt(beam.reshape(-1))
+            cx = 0.
             for i in range(beam.size):
-                co = np.sqrt(beam.flatten[i])
-                cx = 0.
-                file.write(f"{np.real(co)},{np.imag(co)},{np.real(cx)},{np.imag(cx)}")
-
+                file.write(f"{np.real(co[i])} {np.imag(co[i])} {np.real(cx)} {np.imag(cx)}\n")
+    
+    @classmethod
+    def tearDownClass(cls):
+        if os.path.exists(cls.path):
+            os.remove(cls.path)
 
 if __name__ == '__main__':
     unittest.main()
