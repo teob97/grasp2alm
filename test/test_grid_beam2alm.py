@@ -31,12 +31,9 @@ class TestBeamGrid(unittest.TestCase):
         xe: float = 360.0
         ye: float = 90.0
 
-        nx: int = 1001
-        ny: int = 1001
+        nx: int = 61
+        ny: int = 30000
         klimit: int = 0
-
-        amp: np.ndarray = None
-
 
         header: str = "VERSION: TICRA-EM-FIELD-V0.1\n" + \
                     "Field data in grid\n" + \
@@ -52,19 +49,37 @@ class TestBeamGrid(unittest.TestCase):
                     f"{nx} {ny} {klimit}"
         
         #map and alm variables
-        cls.pol: bool = True
-        cls.nside: int = 1024
-        cls.lmax: int = 2*cls.nside
+        pol: bool = True
+        nside: int = 1024
+        lmax: int = 2*nside
+        pol = True
+        
+        #Index of T, E, B
+        index_0 = hp.Alm.getidx(lmax,np.arange(lmax),0) #(lmax,l,m)
+        index_2 = hp.Alm.getidx(lmax,np.arange(lmax),2) #(lmax,l,m)
+        cls.indexes = { 'T':index_0, 'E':index_2, 'B':index_2 }
         
         #Gauss beam
-        fwhm_deg = np.rad2deg(hp.nside2resol(cls.nside))*100
+        fwhm_deg = np.rad2deg(hp.nside2resol(nside))*100
         fwhm = np.deg2rad(fwhm_deg)
         sigma = fwhm/(2.0*np.sqrt(2.0*np.log(2.0)))
         amplitude = 1/(2*np.pi*sigma**2)
         
         beam_co = cls.gaussian_beam(xs,ys,xe,ye,nx,ny,amplitude,sigma)
         cls.write2grid(cls.path,header,beam_co)
-    
+
+        #Alm
+        cls.test_alm = g2a.grasp2alm(
+            cls.path,
+            nside,
+            interp_method='linear',
+            lmax=lmax,
+            mmax=2,
+            pol=pol
+        )
+        cls.ideal_alm = cls.ideal_alm_gauss(fwhm,lmax,pol)
+
+        
     @classmethod
     def gaussian_beam(cls,xs:float, ys:float, xe:float, ye:float, nx:int, ny:int, amplitude, sigma:float,):
         grid = np.deg2rad( np.meshgrid(np.linspace(xs,xe,nx,endpoint=False),np.linspace(ys,ye,ny,endpoint=False)) )
@@ -85,6 +100,39 @@ class TestBeamGrid(unittest.TestCase):
     def tearDownClass(cls):
         if os.path.exists(cls.path):
             os.remove(cls.path)
+    
+    @classmethod
+    def ideal_alm_gauss(cls,fwhm:float,lmax:int,pol:bool):
+
+        mmax:int = 2
+        ncomp:int = 3
+        nval = hp.Alm.getsize(lmax, mmax)
+
+        blm = np.zeros((ncomp, nval), dtype=np.complex128)
+        sigmasq = fwhm * fwhm / (8 * np.log(2.0))
+
+        for l in range(0, lmax + 1):
+            blm[0, hp.Alm.getidx(lmax, l, 0)] = np.sqrt((2 * l + 1) / (4.0 * np.pi)) * np.exp(
+                -0.5 * sigmasq * l * (l+1)
+            )
+
+        if pol:
+            for l in range(2, lmax + 1):
+                blm[1, hp.Alm.getidx(lmax, l, 2)] = np.sqrt(
+                    (2 * l + 1) / (16 * np.pi)
+                ) * np.exp(-0.5 * sigmasq * l * (l+1) )
+            blm[2] = 1j * blm[1]
+
+        return blm
+    
+
+    def test_grid_beam2alm_I(self):
+        self.assertTrue( np.allclose(self.test_alm[0,self.indexes['T']],self.ideal_alm[0,self.indexes['T']],atol=1e-3)  ) 
+    def test_grid_beam2alm_E(self):
+        self.assertTrue( np.allclose(self.test_alm[1,self.indexes['E']],self.ideal_alm[1,self.indexes['E']],atol=1e-3)  ) 
+    def test_grid_beam2alm_B(self):
+        self.assertTrue( np.allclose(self.test_alm[2,self.indexes['B']],self.ideal_alm[2,self.indexes['B']],atol=1e-3)  ) 
+    
 
 if __name__ == '__main__':
     unittest.main()
