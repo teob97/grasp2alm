@@ -6,8 +6,44 @@ import healpy as hp
 import grasp2alm as g2a
 
 class TestBeamCut(unittest.TestCase):
+    """
+    Unit tests for the beam_cut module, specifically testing the functionality
+    of converting a beam cut to alm coefficients using the grasp2alm function.
+
+    Methods:
+        setUp():
+            Initializes the test environment. This includes setting up parameters
+            for the beam and writing the beam cut file.
+
+        tearDown():
+            Cleans up the test environment by removing the generated beam cut file.
+
+        write2cut(path: str, header_1: str, header_2: str, vnum: int, ncut: int, co):
+            Writes the beam data to a cut file in a specified format. Used to
+            simulate the input file for the grasp2alm function.
+
+        gaussian_beam(amplitude, sigma, theta):
+            Generates a Gaussian beam profile based on the provided amplitude,
+            sigma (beam width), and theta (angle) values.
+
+        ideal_alm_gauss(fwhm: float, lmax: int, pol: bool):
+            Generates the ideal alm coefficients for a Gaussian beam profile
+            given the full width at half maximum (FWHM), maximum multipole moment (lmax),
+            and a flag indicating whether polarization is included.
+
+        test_cut_beam2alm():
+            Tests the grasp2alm function by comparing the generated alm coefficients
+            from the beam cut file to the ideal alm coefficients of a Gaussian beam.
+            Asserts that the coefficients match within a specified tolerance.
+    """
 
     def setUp(self):
+        """
+        Sets up the test environment by initializing parameters.
+        This includes defining the path to the beam cut file, setting the polarization flag,
+        nside parameter, lmax parameter, and calculating the beam FWHM and sigma.
+        It also generates the beam profile and writes it to a file.
+        """
         self.path: str = str(Path(__file__).parent / "beam_files" / "beam2alm.cut")
         self.pol: bool = True
         self.nside: int = 1024
@@ -42,10 +78,27 @@ class TestBeamCut(unittest.TestCase):
         self.ideal_alm = self.ideal_alm_gauss(self.beam_fwhm, lmax=self.lmax, pol=self.pol)
 
     def tearDown(self):
+        """
+        Cleans up the test environment by removing the generated beam cut file.
+        """
         if os.path.exists(self.path):
             os.remove(self.path)
 
     def write2cut(self, path:str, header_1:str, header_2:str, vnum:int, ncut:int, co):
+        """
+        Writes beam data to a cut file.
+
+        Args:
+            path (str): Path to the output cut file.
+            header_1 (str): First header line for the cut file.
+            header_2 (str): Second header line for the cut file.
+            vnum (int): Number of data points in the theta array.
+            ncut (int): Number of phi cuts.
+            co (array): Copolar component of the beam.
+
+        Writes the formatted beam data to the specified path with the provided headers.
+        Each cut contains vnum lines of data.
+        """
         with open(path, 'w', encoding='utf-8') as file:
             for _ in range(ncut):
                 file.write(header_1)
@@ -57,10 +110,32 @@ class TestBeamCut(unittest.TestCase):
                     cx_i = 0.0
                     file.write(f"{np.real(co_i)} {np.imag(co_i)} {np.real(cx_i)} {np.imag(cx_i)}\n")
 
-    def gaussian_beam(self, amplitude, sigma, theta):
+    def gaussian_beam(self, amplitude:float, sigma:float, theta):
+        """
+        Generates a Gaussian beam profile.
+
+        Args:
+            amplitude (float): Amplitude of the Gaussian beam.
+            sigma (float): Standard deviation of the Gaussian beam.
+            theta (array): Array of theta values (angles) in radians.
+
+        Returns:
+            array: Array of complex values representing the Gaussian beam profile.
+        """
         return amplitude * np.exp(- theta**2 / (2*sigma**2))
 
     def ideal_alm_gauss(self, fwhm:float, lmax:int, pol:bool):
+        """
+        Generates alm coefficients for an ideal Gaussian beam profile.
+
+        Args:
+            fwhm (float): Full width at half maximum of the Gaussian beam in radians.
+            lmax (int): Maximum multipole moment.
+            pol (bool): Flag indicating whether polarization is included.
+
+        Returns:
+            array: Array of complex alm coefficients.
+        """
         mmax: int = 2
         ncomp: int = 3
         nval = hp.Alm.getsize(lmax, mmax)
@@ -83,6 +158,15 @@ class TestBeamCut(unittest.TestCase):
         return blm
 
     def test_cut_beam2alm(self):
+        """
+        Tests the grasp2alm function by comparing the alm coefficients generated
+        from the beam cut file to the ideal alm coefficients of a Gaussian beam.
+        Asserts that the T, E, and B mode coefficients match within a specified tolerance.
+
+        Asserts:
+            True if the alm coefficients generated from the beam cut file
+            are close to the ideal alm coefficients within a tolerance of 1e-3.
+        """
         index_T = hp.Alm.getidx(self.lmax, np.arange(self.lmax), 0)
         self.assertTrue(np.allclose(
             self.test_alm[0][index_T],
