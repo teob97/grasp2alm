@@ -6,11 +6,11 @@ import healpy as hp
 import grasp2alm as g2a
 
 class TestBeamGrid(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
+
+    def setUp(self):
         
         #path grid file
-        cls.path = str( Path(__file__).parent / "beam_files" / "beam2alm.grd" )
+        self.path = str( Path(__file__).parent / "beam_files" / "beam2alm.grd" )
 
         #grid variables
         freq: float = 119.0
@@ -57,37 +57,40 @@ class TestBeamGrid(unittest.TestCase):
         #Index of T, E, B
         index_0 = hp.Alm.getidx(lmax,np.arange(lmax),0) #(lmax,l,m)
         index_2 = hp.Alm.getidx(lmax,np.arange(lmax),2) #(lmax,l,m)
-        cls.indexes = { 'T':index_0, 'E':index_2, 'B':index_2 }
+        self.indexes = { 'T':index_0, 'E':index_2, 'B':index_2 }
         
-        #Gauss beam
+        #Gauss beam variables
         fwhm_deg = np.rad2deg(hp.nside2resol(nside))*100
         fwhm = np.deg2rad(fwhm_deg)
         sigma = fwhm/(2.0*np.sqrt(2.0*np.log(2.0)))
         amplitude = 1/(2*np.pi*sigma**2)
         
-        beam_co = cls.gaussian_beam(xs,ys,xe,ye,nx,ny,amplitude,sigma)
-        cls.write2grid(cls.path,header,beam_co)
+        #Compute Gauss beam and write to grid file
+        beam_co = self.gaussian_beam(xs,ys,xe,ye,nx,ny,amplitude,sigma)
+        self.write2grid(self.path,header,beam_co)
 
-        #Alm
-        cls.test_alm = g2a.grasp2alm(
-            cls.path,
+        #Compute Alm
+        self.test_alm = g2a.grasp2alm(
+            self.path,
             nside,
             interp_method='linear',
             lmax=lmax,
             mmax=2,
             pol=pol
         )
-        cls.ideal_alm = cls.ideal_alm_gauss(fwhm,lmax,pol)
+        self.ideal_alm = self.ideal_alm_gauss(fwhm,lmax,pol)
 
-        
-    @classmethod
-    def gaussian_beam(cls,xs:float, ys:float, xe:float, ye:float, nx:int, ny:int, amplitude, sigma:float,):
+    def tearDown(self):
+        if os.path.exists(self.path):
+            os.remove(self.path)
+
+    def gaussian_beam(self,xs:float, ys:float, xe:float, ye:float, nx:int, ny:int, amplitude, sigma:float,):
         grid = np.deg2rad( np.meshgrid(np.linspace(xs,xe,nx,endpoint=False),np.linspace(ys,ye,ny,endpoint=False)) )
         gauss = amplitude * np.exp( -0.5*(grid[1]/sigma)**2 )
         return gauss
     
-    @classmethod
-    def write2grid(cls,path:str,header:str,beam):
+
+    def write2grid(self,path:str,header:str,beam):
         with open(path, 'w', encoding='utf-8') as file:
             file.write(header)
             file.write("\n")
@@ -96,13 +99,8 @@ class TestBeamGrid(unittest.TestCase):
             for i in range(beam.size):
                 file.write(f"{np.real(co[i])} {np.imag(co[i])} {np.real(cx)} {np.imag(cx)}\n")
     
-    @classmethod
-    def tearDownClass(cls):
-        if os.path.exists(cls.path):
-            os.remove(cls.path)
-    
-    @classmethod
-    def ideal_alm_gauss(cls,fwhm:float,lmax:int,pol:bool):
+
+    def ideal_alm_gauss(self,fwhm:float,lmax:int,pol:bool):
 
         mmax:int = 2
         ncomp:int = 3
@@ -126,11 +124,9 @@ class TestBeamGrid(unittest.TestCase):
         return blm
     
 
-    def test_grid_beam2alm_I(self):
+    def test_grid_beam2alm(self):
         self.assertTrue( np.allclose(self.test_alm[0,self.indexes['T']],self.ideal_alm[0,self.indexes['T']],atol=1e-3)  ) 
-    def test_grid_beam2alm_E(self):
         self.assertTrue( np.allclose(self.test_alm[1,self.indexes['E']],self.ideal_alm[1,self.indexes['E']],atol=1e-3)  ) 
-    def test_grid_beam2alm_B(self):
         self.assertTrue( np.allclose(self.test_alm[2,self.indexes['B']],self.ideal_alm[2,self.indexes['B']],atol=1e-3)  ) 
     
 
