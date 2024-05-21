@@ -7,15 +7,14 @@ import grasp2alm as g2a
 
 class TestBeamCut(unittest.TestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        cls.path: str = str(Path(__file__).parent / "beam_files" / "beam2alm.cut")
-        cls.pol: bool = True
-        cls.nside: int = 1024
-        cls.lmax: int = 2*cls.nside
-        beam_fwhm_deg: float = np.rad2deg(hp.nside2resol(cls.nside))*100
-        cls.beam_fwhm: float = np.deg2rad(beam_fwhm_deg)
-        beam_sigma: float = cls.beam_fwhm/(2.0*np.sqrt(2.0*np.log(2.0)))
+    def setUp(self):
+        self.path: str = str(Path(__file__).parent / "beam_files" / "beam2alm.cut")
+        self.pol: bool = True
+        self.nside: int = 1024
+        self.lmax: int = 2*self.nside
+        beam_fwhm_deg: float = np.rad2deg(hp.nside2resol(self.nside))*100
+        self.beam_fwhm: float = np.deg2rad(beam_fwhm_deg)
+        beam_sigma: float = self.beam_fwhm/(2.0*np.sqrt(2.0*np.log(2.0)))
         amplitude: float = 1/(2*np.pi*beam_sigma*beam_sigma)
 
         vini: float = -beam_fwhm_deg*3
@@ -29,11 +28,24 @@ class TestBeamCut(unittest.TestCase):
         theta = np.linspace(vini, -vini, vnum)
         theta = np.deg2rad(theta)
 
-        beam_co = cls.gaussian_beam(amplitude, beam_sigma, theta)
-        cls.write2cut(cls.path, header_1, header_2, vnum, ncut, beam_co)
+        beam_co = self.gaussian_beam(amplitude, beam_sigma, theta)
+        self.write2cut(self.path, header_1, header_2, vnum, ncut, beam_co)
 
-    @classmethod
-    def write2cut(cls, path:str, header_1:str, header_2:str, vnum:int, ncut:int, co):
+        self.test_alm = g2a.grasp2alm(
+            self.path,
+            self.nside,
+            interp_method='linear',
+            lmax=self.lmax,
+            mmax=2,
+            pol=self.pol
+        )
+        self.ideal_alm = self.ideal_alm_gauss(self.beam_fwhm, lmax=self.lmax, pol=self.pol)
+
+    def tearDown(self):
+        if os.path.exists(self.path):
+            os.remove(self.path)
+
+    def write2cut(self, path:str, header_1:str, header_2:str, vnum:int, ncut:int, co):
         with open(path, 'w', encoding='utf-8') as file:
             for _ in range(ncut):
                 file.write(header_1)
@@ -45,25 +57,8 @@ class TestBeamCut(unittest.TestCase):
                     cx_i = 0.0
                     file.write(f"{np.real(co_i)} {np.imag(co_i)} {np.real(cx_i)} {np.imag(cx_i)}\n")
 
-    @classmethod
-    def gaussian_beam(cls, amplitude, sigma, theta):
+    def gaussian_beam(self, amplitude, sigma, theta):
         return amplitude * np.exp(- theta**2 / (2*sigma**2))
-
-    @classmethod
-    def tearDownClass(cls):
-        if os.path.exists(cls.path):
-            os.remove(cls.path)
-
-    def setUp(self):
-        self.test_alm = g2a.grasp2alm(
-            self.path,
-            self.nside,
-            interp_method='linear',
-            lmax=self.lmax,
-            mmax=2,
-            pol=self.pol
-        )
-        self.ideal_alm = self.ideal_alm_gauss(self.beam_fwhm, lmax=self.lmax, pol=self.pol)
 
     def ideal_alm_gauss(self, fwhm:float, lmax:int, pol:bool):
         mmax: int = 2
@@ -87,15 +82,28 @@ class TestBeamCut(unittest.TestCase):
 
         return blm
 
-    def test_cut_beam2alm_I(self):
-        index = hp.Alm.getidx(self.lmax, np.arange(self.lmax), 0)
-        self.assertTrue(np.allclose(self.test_alm[0][index], self.ideal_alm[0][index], atol=1e-3))
-    def test_cut_beam2alm_Q(self):
-        index = hp.Alm.getidx(self.lmax, np.arange(self.lmax), 2)
-        self.assertTrue(np.allclose(self.test_alm[1][index], self.ideal_alm[1][index], atol=1e-3))
-    def test_cut_beam2alm_U(self):
-        index = hp.Alm.getidx(self.lmax, np.arange(self.lmax), 2)
-        self.assertTrue(np.allclose(self.test_alm[2][index], self.ideal_alm[2][index], atol=1e-3))
+    def test_cut_beam2alm(self):
+        index_T = hp.Alm.getidx(self.lmax, np.arange(self.lmax), 0)
+        self.assertTrue(np.allclose(
+            self.test_alm[0][index_T],
+            self.ideal_alm[0][index_T],
+            atol=1e-3
+            )
+        )
+        index_E = hp.Alm.getidx(self.lmax, np.arange(self.lmax), 2)
+        self.assertTrue(np.allclose(
+            self.test_alm[1][index_E],
+            self.ideal_alm[1][index_E],
+            atol=1e-3
+            )
+        )
+        index_B = hp.Alm.getidx(self.lmax, np.arange(self.lmax), 2)
+        self.assertTrue(np.allclose(
+            self.test_alm[2][index_B],
+            self.ideal_alm[2][index_B],
+            atol=1e-3
+            )
+        )
 
 if __name__ == '__main__':
     unittest.main()
