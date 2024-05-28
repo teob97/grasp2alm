@@ -9,10 +9,6 @@ class BeamMap:
     Attributes:
         nside (int): The resolution parameter of the map.
         map (numpy.ndarray): The beam map data.
-
-    Methods:
-        to_alm(lmax, mmax): Converts the beam map to spherical harmonic coefficients.
-
     """
 
     def __init__(self, map):

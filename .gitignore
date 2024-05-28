@@ -4,4 +4,4 @@ dist/
 test/__pycache__
 .pytest_cache/
 .vscode/
-docs_old/
+docs/build

@@ -25,12 +25,6 @@ class BeamPolar:
         theta_rad_max (float): Maximum theta value in radians.
         stokes (ndarray): Array of shape (4, nphi, ntheta) representing the Stokes parameters (I,Q,U,V).
         filename (str): Name of the file.
-
-    Methods:
-        stokes_rotate(): Rotate the stokes beam.
-        to_map(nside, nstokes=3, outOftheta_val=0.0): Convert the beam to a map.
-        plot(stokes="I", color_resol=20, figsize=6, cmap="jet", return_fields=False): Plot the beam.
-
     """
 
     def __init__(
@@ -153,14 +147,10 @@ class BeamPolar:
             cmap (str): Colormap to use.
             return_fields (bool): Flag indicating whether to return the plot fields.
 
-        Returns:
-        If return_fields is False:
-            None
-
-        If return_fields is True:
-            x (ndarray): The x values of the plot.
-            y (ndarray): The y values of the plot.
-            self.stokes[s] (ndarray): The z values of the plot.
+        Returns
+        -------
+            None: if return_fields is False (default)
+            (ndarray,ndarray,ndarray): if return_fields is True returns x,y,z values of the plot.
 
         """
         if stokes.upper() =="I":
