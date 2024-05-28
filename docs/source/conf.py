@@ -21,15 +21,18 @@ author = 'Yusuke Takase'
 
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
     'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
     'sphinx.ext.intersphinx',
     'nbsphinx',
 ]
 
+autosummary_generate = True 
+autosummary_imported_members = True
+
 templates_path = ['_templates']
 exclude_patterns = []
-
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
