@@ -1,6 +1,16 @@
 API Reference
 =============
 
+Main functions
+--------------
+
+.. toctree::
+.. autosummary:: 
+   :toctree: generated/
+
+   grasp2alm.grasp2alm
+   grasp2alm.grasp2alm_lsq
+
 Classes
 -------
 
