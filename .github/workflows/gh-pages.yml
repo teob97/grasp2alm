@@ -53,8 +53,8 @@ jobs:
       - name: Install dependencies
         run: poetry install
 
-      - name: Setup pandoc
-      - uses: docker://pandoc/core:2.9
+      - name: Use pandoc
+        uses: docker://pandoc/core:2.9
 
       - name: Build Sphinx
         run: |
