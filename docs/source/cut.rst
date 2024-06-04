@@ -105,5 +105,5 @@ Field Component Details Based on ICOMP
 - **ICOMP = 9**:
 
   - Real part of F1: Total power :math:`|\vec{E}|` of the field (linear scale)
-  - Imaginary part of F1 is zero.
+  - The imaginary part of F1 is zero.
   - F2: Complex square root of the ratio rhc/lhc. The phase indicates the rotation angle of the polarization ellipse.

@@ -7,7 +7,7 @@ Welcome to grasp2alm's documentation!
 =====================================
 
 This package supports the conversion from beam data calculated using `GRASP <https://www.ticra.com/software/grasp/>`_ for CMB experiments to spherical harmonic coefficients :math:`a_{\ell m}` based on the `HEALPix <https://healpix.sourceforge.io/>`_ framework.
-The code is designed based on `Beam <https://github.com/zonca/planck-levelS/tree/master/Beam/>`_, which is part of `LevelS <https://github.com/zonca/planck-levelS>`_, the pipleline of the Planck experiment.
+The code is designed based on `Beam <https://github.com/zonca/planck-levelS/tree/master/Beam/>`_, which is part of `LevelS <https://github.com/zonca/planck-levelS>`_, the pipeline of the Planck experiment.
 
 Contents:
 
@@ -18,6 +18,7 @@ Contents:
    tutorial
    cut
    grid
+   stokes
    reference
 
 Changelog
