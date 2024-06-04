@@ -255,3 +255,23 @@ class BeamGrid:
             plt.colorbar(orientation="vertical", label="dBi")
         else:
             return (x, y, z.T)
+        
+    def uv2phitheta(self):
+
+        #nu = self.nx
+        #nv = self.ny
+        u = np.linspace(self.xs,self.xe,self.nx)
+        v = np.linspace(self.ys,self.ye,self.ny)
+
+        theta = np.arcsin( np.sqrt( u**2 + v**2 ) )
+
+        phi = np.zeros_like(u)
+        phi_v0 = np.zeros_like(u)
+        m0 = abs(u) - 0. > 1e-5
+        phi[m0] = np.arctan( v[m0]/u[m0] )
+        phi_v0[m0] = np.pi*0.5 
+        
+
+        theta_rad_min = np.deg2rad(self.ys)
+        theta_rad_max = np.deg2rad(self.ye)
+        pass
