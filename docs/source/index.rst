@@ -19,6 +19,7 @@ Contents:
    cut
    grid
    stokes
+   mapping
    reference
 
 Changelog

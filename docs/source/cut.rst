@@ -36,7 +36,7 @@ A `.cut` file consists of a series of records that describe the characteristics 
     - **ICUT**: Control parameter of the cut (integer)
     - **NCOMP**: Number of field components (integer)
 
-    See parameter_ for more information about `Sperical Cuts`.
+    See :ref:`cut:Parameter Definitions for Spherical Cuts` for more information about `Sperical Cuts`.
 
 3. **Record Type 3: Field Values**
     These records contain the actual field values for each point in the cut. The number of components stored depends on the value of **NCOMP**:
@@ -49,7 +49,7 @@ A `.cut` file consists of a series of records that describe the characteristics 
     - the parameter **V** is :math:`\mathrm{V\_INI}+\mathrm{V\_INC} \cdot (\mathrm{I}-1)`
     - **F1, F2** (and **F3** if applicable) store the real and imaginary parts of the field components in the direction associated to **V** and **C**.
 
-    See field_ for more information
+    See :ref:`cut:Field Component Details Based on ICOMP` for more information
 
 **Example of a typical .cut file:**
 
@@ -59,8 +59,6 @@ A `.cut` file consists of a series of records that describe the characteristics 
     V_INI V_INC V_NUM C ICOMP ICUT NCOMP
     F1.real F1.img F2.real F2.img F3.real F3.img
     ...
-
-.. _parameter:
 
 Parameter Definitions for Spherical Cuts
 ----------------------------------------
@@ -80,8 +78,6 @@ Regarding **ICOMP**, it could be one of the following values:
    - **9**: Total power :math:`|\vec{E}|` and :math:`\sqrt{E_{rhc}/E_{lhc}}`
 
 Finally, when the field is a near field, **NCOMP** is equal to 3 and the file contains also a third radial component :math:`E_{r}`.
-
-.. _field:
 
 Field Component Details Based on ICOMP
 --------------------------------------
