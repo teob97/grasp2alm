@@ -11,7 +11,7 @@ class BeamCut:
     """
     Class to hold the data from a beam cut file of GRASP.
 
-    Attributes:
+    Args:
         header (str): Record with identification text.
         vini (float): Initial value.
         vinc (float): Increment.

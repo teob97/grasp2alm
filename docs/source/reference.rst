@@ -5,7 +5,7 @@ Main functions
 --------------
 
 .. toctree::
-.. autosummary:: 
+.. autosummary::
    :toctree: generated/
 
    grasp2alm.grasp2alm
@@ -17,9 +17,9 @@ Classes
 .. toctree::
    :maxdepth: 2
 
-.. autosummary:: 
+.. autosummary::
    :toctree: generated/
-
+   
    grasp2alm.BeamCut
    grasp2alm.BeamGrid
    grasp2alm.BeamPolar

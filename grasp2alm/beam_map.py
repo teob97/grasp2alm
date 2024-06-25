@@ -6,7 +6,7 @@ import healpy as hp
 class BeamMap:
     """Represents a beam map.
 
-    Attributes:
+    Args:
         nside (int): The resolution parameter of the map.
         map (numpy.ndarray): The beam map data.
     """

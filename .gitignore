@@ -5,3 +5,4 @@ test/__pycache__
 .pytest_cache/
 .vscode/
 docs/build
+.venv/

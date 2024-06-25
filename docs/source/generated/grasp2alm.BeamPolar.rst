@@ -19,7 +19,3 @@
       ~BeamPolar.to_map
    
    
-
-   
-   
-   

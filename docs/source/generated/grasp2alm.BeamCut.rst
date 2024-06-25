@@ -18,22 +18,3 @@
       ~BeamCut.to_polar
    
    
-
-   
-   
-   .. rubric:: Attributes
-
-   .. autosummary::
-   
-      ~BeamCut.amp
-      ~BeamCut.c
-      ~BeamCut.header
-      ~BeamCut.icomp
-      ~BeamCut.icut
-      ~BeamCut.ncomp
-      ~BeamCut.ncut
-      ~BeamCut.vinc
-      ~BeamCut.vini
-      ~BeamCut.vnum
-   
-   

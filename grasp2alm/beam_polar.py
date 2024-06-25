@@ -18,7 +18,7 @@ class BeamPolar:
     'Ludwig 3' definition for thepolarisation basis with
     the co-polar (positive Q) direction aligned with the y-axis.
 
-    Attributes:
+    Args:
         nphi (int): Number of phi values.
         ntheta (int): Number of theta values.
         theta_rad_min (float): Minimum theta value in radians.

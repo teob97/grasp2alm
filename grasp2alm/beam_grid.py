@@ -10,7 +10,7 @@ from .beam_polar import BeamPolar
 class BeamGrid:
     """Class to hold the data from a beam grid file of GRASP.
 
-    Attributes:
+    Args:
         header (str): Record with identification text.
         ktype (int): Specifies type of file format.
         nset (int): Number of field sets or beams.

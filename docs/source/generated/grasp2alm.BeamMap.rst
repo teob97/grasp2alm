@@ -18,7 +18,3 @@
       ~BeamMap.to_alm_lsq
    
    
-
-   
-   
-   
