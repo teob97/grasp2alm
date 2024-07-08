@@ -22,7 +22,7 @@ class TestBeamGrid(unittest.TestCase):
     def test_input_grid_format(self):
         txt_with_error = "Test header\n++++\n2"
         self.write_to_test_grid(txt_with_error)
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             BeamGrid(self.path_to_test_grid)
 
     def test_input_beams_number(self):
