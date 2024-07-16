@@ -1,4 +1,5 @@
 import numpy as np
+import healpy as hp
 
 class BeamGauss:
     """Class to sample a gaussian beam.
@@ -79,7 +80,7 @@ class BeamGauss:
                     co_i = np.emath.sqrt(beam[i])
                     cx_i = 0.0
                     file.write(f"{np.real(co_i)} {np.imag(co_i)} {np.real(cx_i)} {np.imag(cx_i)}\n")
-    
+
     def write2thetaphigrid(self, path:str, xs:float, ys:float, xe:float, ye:float, nx:int, ny:int):
         """
         Writes the formatted beam data to the specified path with the provided headers. 
@@ -109,9 +110,9 @@ class BeamGauss:
         phi = np.linspace(xs, xe, nx, endpoint=False)
         theta = np.linspace(ys, ye, ny, endpoint=False)
         grid = np.deg2rad(np.meshgrid(phi, theta))
-        
+
         beam = self.gaussian_beam(grid[1])
-        
+
         if not isinstance(path, str):
             raise ValueError("Path must be a string.")
         with open(path, 'w', encoding='utf-8') as file:
@@ -122,3 +123,43 @@ class BeamGauss:
                 file.write(f"{np.real(i)} {np.imag(i)} 0.0 0.0\n")
 
         return grid
+
+    def get_alm(self, lmax:int, mmax:int, pol:bool):
+        """
+        Returns the spherical harmonic coefficients of the Gaussian beam.
+
+        Args:
+            lmax (int): The maximum spherical harmonic degree.
+            mmax (int): The maximum spherical harmonic order.
+            pol (bool): Whether the beam is polarized.
+
+        Returns:
+            array: The spherical harmonic coefficients of the Gaussian beam.
+        """
+        ncomp = 3 if pol else 1
+        nval = hp.Alm.getsize(lmax, mmax)
+
+        if mmax > lmax:
+            raise ValueError("lmax value too small")
+
+        blm = np.zeros((ncomp, nval), dtype=np.complex128)
+        fwhm_rad = np.deg2rad(self.fwhm_deg)
+        sigmasq = fwhm_rad * fwhm_rad / (8 * np.log(2.0))
+
+        for l in range(0, lmax + 1):
+            blm[0, hp.Alm.getidx(lmax, l, 0)] = \
+                np.sqrt((2 * l + 1) / (4.0 * np.pi)) * \
+                np.exp(-0.5 * sigmasq * l * (l + 1))
+
+        if pol:
+            for l in range(2, lmax + 1):
+                blm[1, hp.Alm.getidx(lmax, l, 2)] = \
+                    np.sqrt((2 * l + 1) / (32 * np.pi)) * \
+                    np.exp(-0.5 * sigmasq * l * (l + 1))
+            blm[2] = 1j * blm[1]
+
+        # Adjust normalization
+        blm[1] = -blm[1] * np.sqrt(2.0)
+        blm[2] = -blm[2] * np.sqrt(2.0)
+
+        return blm
