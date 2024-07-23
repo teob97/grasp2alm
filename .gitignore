@@ -6,3 +6,6 @@ test/__pycache__
 .vscode/
 .DS_Store
 test/.DS_Store
+docs/build
+.venv/
+notebooks/
